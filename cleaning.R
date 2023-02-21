@@ -131,7 +131,7 @@ df$proph_amu[df$q65_1 == 2 | df$q65_1 == 3 | df$q65_2 == 2 | df$q65_2 == 3] <- 1
 #' we will look at those who used it exclusively preventatively
 
 df$proph_vacc <- 0
-df$proph_vacc[df$q64_1 == 2] <- 1
+df$proph_vacc[df$q64_1 == 2 | df$q64_2 == 2 | df$q64_2 == 3 ] <- 1
 
 #create vars for expenditure on vaccination, vitamins, abx
 df$cattle_expense_dewormer <- df$q75_cattle_dewormer
@@ -352,7 +352,7 @@ dfpoultry <- df[df$has_poultry == 1,]
 
 dfcattle <- dfcattle[,c("cattle_disease", "proph_amu", "proph_vacc", "cattle_expense_antibiotics",
                         "cattle_expense_vaccination", "cattle_expense_othermed", "cattle_biosecurity",
-                        "num_cattle")]
+                        "num_cattle", "animal_health_services")]
 
 #add a var for species
 dfcattle$species <- "cattle"
@@ -377,7 +377,7 @@ dfcattle$expense_othermed <- dfcattle$expense_othermed / dfcattle$num_animals
   
 dfpigs <- dfpigs[,c("pig_disease", "proph_amu", "proph_vacc", "pigs_expense_antibiotics",
                         "pigs_expense_vaccination", "pigs_expense_othermed", "pig_biosecurity",
-                        "num_pigs")]
+                        "num_pigs", "animal_health_services")]
 
 #add a var for species
 dfpigs$species <- "pigs"  
@@ -403,7 +403,7 @@ dfpigs$expense_othermed <- dfpigs$expense_othermed / dfpigs$num_animals
 
 dfpoultry <- dfpoultry[,c("poultry_disease", "proph_amu", "proph_vacc", "poultry_expense_antibiotics",
                     "poultry_expense_vaccination", "poultry_expense_othermed", "poultry_biosecurity",
-                    "num_chickens")]
+                    "num_chickens", "animal_health_services")]
 
 #add a var for species
 dfpoultry$species <- "chickens"
@@ -429,7 +429,7 @@ dfpoultry$expense_othermed <- dfpoultry$expense_othermed / dfpoultry$num_animals
 
 dfruminants <- dfruminants[,c("ruminant_disease", "proph_amu", "proph_vacc", "ruminant_expense_antibiotics",
                           "ruminant_expense_vaccination", "ruminant_expense_othermed", "ruminant_biosecurity",
-                          "num_ruminants")]
+                          "num_ruminants", "animal_health_services")]
 
 #add a var for species
 dfruminants$species <- "ruminants"
@@ -473,6 +473,127 @@ table(df$expense_othermed)
 is.na(df$expense_othermed)
 df$expense_othermed[is.na(df$expense_othermed)] <- 0
 df$expense_othermed[df$expense_othermed < 0] <- NA
+
+#remove outlier expenditures
+dfcattle <- df[df$species == "cattle",]
+dfchicken <- df[df$species == "chickens",]
+dfpig <- df[df$species == "pigs",]
+dfruminant <- df[df$species == "ruminants",]
+
+hist(dfcattle$expense_antibiotics)
+nrow(dfcattle[dfcattle$expense_antibiotics > 300000, ]) #1
+nrow(dfcattle[dfcattle$expense_antibiotics > 200000, ]) #2
+nrow(dfcattle[dfcattle$expense_antibiotics > 150000, ]) #2
+nrow(dfcattle[dfcattle$expense_antibiotics > 100000, ]) #5
+#remove above 200,000
+df$expense_antibiotics[df$species == "cattle" & df$expense_antibiotics > 200000] <- NA
+
+hist(dfchicken$expense_antibiotics)
+nrow(dfchicken[dfchicken$expense_antibiotics > 5000, ]) #2
+nrow(dfchicken[dfchicken$expense_antibiotics > 4000, ]) #2
+nrow(dfchicken[dfchicken$expense_antibiotics > 3000, ]) #2
+nrow(dfchicken[dfchicken$expense_antibiotics > 2000, ]) #6
+nrow(dfchicken[dfchicken$expense_antibiotics > 1000, ]) #18
+#remove above 3,000
+df$expense_antibiotics[df$species == "chickens" & df$expense_antibiotics > 3000] <- NA
+
+hist(dfruminant$expense_antibiotics)
+nrow(dfruminant[dfruminant$expense_antibiotics > 150000, ]) #1
+nrow(dfruminant[dfruminant$expense_antibiotics > 100000, ]) #3
+nrow(dfruminant[dfruminant$expense_antibiotics > 50000, ]) #4
+nrow(dfruminant[dfruminant$expense_antibiotics > 30000, ]) #7
+#remove above 100,000
+df$expense_antibiotics[df$species == "ruminant" & df$expense_antibiotics > 100000] <- NA
+
+hist(dfpig$expense_antibiotics)
+nrow(dfpig[dfpig$expense_antibiotics > 100000,]) #2
+nrow(dfpig[dfpig$expense_antibiotics > 50000,]) #3
+nrow(dfpig[dfpig$expense_antibiotics > 25000,]) #20
+#remove above 100,000
+df$expense_antibiotics[df$species == "pigs" & df$expense_antibiotics > 100000] <- NA
+
+
+
+hist(dfcattle$expense_vaccination)
+nrow(dfcattle[dfcattle$expense_vaccination > 125000,]) #1
+nrow(dfcattle[dfcattle$expense_vaccination > 100000,]) #2
+nrow(dfcattle[dfcattle$expense_vaccination > 50000,]) #4
+nrow(dfcattle[dfcattle$expense_vaccination > 25000,]) #6
+nrow(dfcattle[dfcattle$expense_vaccination > 10000,]) #11
+nrow(dfcattle[dfcattle$expense_vaccination > 5000,]) #11
+nrow(dfcattle[dfcattle$expense_vaccination > 3000,]) #17
+nrow(dfcattle[dfcattle$expense_vaccination > 1000,]) #23
+#remove above 100,000
+df$expense_vaccination[df$species == "cattle" & df$expense_vaccination > 100000] <- NA
+
+hist(dfpig$expense_vaccination)
+nrow(dfpig[dfpig$expense_vaccination > 1000,]) #35
+nrow(dfpig[dfpig$expense_vaccination > 5000,]) #24
+nrow(dfpig[dfpig$expense_vaccination > 10000,]) #16
+nrow(dfpig[dfpig$expense_vaccination > 50000,]) #2
+nrow(dfpig[dfpig$expense_vaccination > 100000,]) #2
+#remove above 100,000
+df$expense_vaccination[df$species == "pigs" & df$expense_vaccination > 100000] <- NA
+
+hist(dfchicken$expense_vaccination)
+nrow(dfchicken[dfchicken$expense_vaccination > 100000,]) #1
+nrow(dfchicken[dfchicken$expense_vaccination > 50000,]) #1
+nrow(dfchicken[dfchicken$expense_vaccination > 10000,]) #2
+nrow(dfchicken[dfchicken$expense_vaccination > 5000,]) #7
+nrow(dfchicken[dfchicken$expense_vaccination > 1000,]) #38
+#remove above 100,000
+df$expense_vaccination[df$species == "chickens" & df$expense_vaccination > 100000] <- NA
+
+hist(dfruminant$expense_vaccination)
+nrow(dfruminant[dfruminant$expense_vaccination > 5000,]) #6
+nrow(dfruminant[dfruminant$expense_vaccination > 10000,]) #4
+nrow(dfruminant[dfruminant$expense_vaccination > 25000,]) #4
+nrow(dfruminant[dfruminant$expense_vaccination > 50000,]) #1
+#remove above 50,000
+df$expense_vaccination[df$species == "ruminants" & df$expense_vaccination > 50000] <- NA
+
+
+
+hist(dfcattle$expense_othermed)
+nrow(dfcattle[dfcattle$expense_othermed > 10000,]) #70
+nrow(dfcattle[dfcattle$expense_othermed > 100000,]) #7
+nrow(dfcattle[dfcattle$expense_othermed > 200000,]) #5
+nrow(dfcattle[dfcattle$expense_othermed > 300000,]) #5
+nrow(dfcattle[dfcattle$expense_othermed > 400000,]) #3
+nrow(dfcattle[dfcattle$expense_othermed > 450000,]) #2
+nrow(dfcattle[dfcattle$expense_othermed > 500000,]) #0
+#have decided to leave all responses in
+
+hist(dfpig$expense_othermed)
+nrow(dfpig[dfpig$expense_othermed > 100000,]) #6
+nrow(dfpig[dfpig$expense_othermed > 150000,]) #2
+nrow(dfpig[dfpig$expense_othermed > 200000,]) #1
+#remove all over 200,000
+df$expense_othermed[df$species == "pigs" & df$expense_othermed > 200000] <- NA
+
+hist(dfchicken$expense_othermed)
+nrow(dfchicken[dfchicken$expense_othermed > 10000,]) #1
+nrow(dfchicken[dfchicken$expense_othermed > 5000,]) #2
+nrow(dfchicken[dfchicken$expense_othermed > 2000,]) #4
+nrow(dfchicken[dfchicken$expense_othermed > 1000,]) #10
+nrow(dfchicken[dfchicken$expense_othermed > 500,]) #22
+#remove above 10,000
+df$expense_othermed[df$species == "chickens" & df$expense_othermed > 10000] <- NA
+
+hist(dfruminant$expense_othermed)
+nrow(dfruminant[dfruminant$expense_othermed > 10000,]) #25
+nrow(dfruminant[dfruminant$expense_othermed > 25000,]) #13
+nrow(dfruminant[dfruminant$expense_othermed > 50000,]) #7
+nrow(dfruminant[dfruminant$expense_othermed > 100000,]) #2
+nrow(dfruminant[dfruminant$expense_othermed > 150000,]) #2
+#remove above 100,000
+df$expense_othermed[df$species == "ruminants" & df$expense_othermed > 100000] <- NA
+
+#divide expenditure by 1,000
+rm(dfcattle, dfchicken, dfruminant, dfpig)
+df$expense_antibiotics <- df$expense_antibiotics / 1000
+df$expense_vaccination <- df$expense_vaccination / 1000
+df$expense_othermed <- df$expense_othermed / 1000
 
 #save dataset
 write.xlsx(df, "cleaned dataset.xlsx", replace)
